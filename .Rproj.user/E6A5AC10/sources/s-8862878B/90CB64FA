@@ -1,0 +1,26 @@
+{
+    "id": "90CB64FA",
+    "path": "C:/pesquisa/pacotes/sdmvis/R/gen_pal.R",
+    "project_path": "R/gen_pal.R",
+    "type": "r_source",
+    "hash": "460223347",
+    "contents": "",
+    "dirty": false,
+    "created": 1622683787963.0,
+    "source_on_save": false,
+    "relative_order": 4,
+    "properties": {
+        "source_window_id": "",
+        "Source": "Source",
+        "cursorPosition": "6,20",
+        "scrollLine": "0"
+    },
+    "folds": "",
+    "lastKnownWriteTime": 1622683863,
+    "encoding": "UTF-8",
+    "collab_server": "",
+    "source_window": "",
+    "last_content_update": 1622683863423,
+    "read_only": false,
+    "read_only_alternatives": []
+}

@@ -1,0 +1,8 @@
+library(raster)
+
+sdm <- raster(nrows=10, ncols=10)
+sdm[] <- sample(c(0, 1, NA), size = ncell(r), replace = T)
+
+binpal <- gen_pal(mode = "bin", pal = "YeBl")
+
+leaflet()%>%addRasterImage(sdm, colors = binpal, opacity = 0.9)

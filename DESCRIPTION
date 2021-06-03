@@ -1,0 +1,5 @@
+Package: sdmvis
+Type: Package
+Title: Interactive tools for visualizing SDM/ENM results
+Version: 0.0.1.0
+RoxygenNote: 7.1.1
