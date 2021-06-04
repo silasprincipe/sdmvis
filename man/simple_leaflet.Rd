@@ -23,6 +23,5 @@ The temperature in degrees Celsius
 Convert degrees Fahrenheit temperatures to degrees Celsius
 }
 \examples{
-temp1 <- F_to_C(50);
-temp2 <- F_to_C( c(50, 63, 23) );
+
 }

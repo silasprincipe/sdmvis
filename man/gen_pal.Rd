@@ -27,12 +27,14 @@ This is an accessory function to generate binary or 4 color palettes to be used 
 \examples{
 library(raster)
 library(leaflet)
+library(rgdal)
 
 sdm <- raster(nrows=10, ncols=10)
-sdm[] <- sample(c(0, 1, NA), size = ncell(r), replace = T)
+sdm[] <- sample(c(0, 1, NA), size = ncell(sdm), replace = TRUE)
 
-binpal <- gen_pal(mode = "binary", pal = "YeBl")
+binpal <- gen_pal(mode = "bin", pal = "YeBl")
 
 leaflet()\%>\%
+addProviderTiles("Esri.OceanBasemap") \%>\%
 addRasterImage(sdm, colors = binpal, opacity = 0.9)
 }
