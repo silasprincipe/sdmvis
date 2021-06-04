@@ -18,7 +18,7 @@ Install the development version from GitHub with:
 
 ``` r
 # install.packages("devtools")
-devtools::install_github("r-lib/usethis")
+devtools::install_github("silasprincipe/sdmvis")
 ```
 
 ## Usage
