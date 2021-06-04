@@ -11,8 +11,9 @@ gen_pal(mode, pal, type = "leaflet")
 
 \item{pal}{Which palete to use. Character string indicating the name of the palette. Can also be a character vector of colors, in which case two or four should be supplied. The following pre-seted (and tested) palettes are available and are recommended:
 \itemize{
- \item{"YeBl":}{ Yellow and Blue}
+ \item{"BlGr":}{ Blue and Gray}
  \item{"GrBl":}{ Green and Blue}
+ \item{"Cool":}{ a 4 color palette}
 }
 All of these palettes are colorblind safe.}
 
@@ -25,16 +26,15 @@ A palette to produce interactive SDM/ENM maps.
 This is an accessory function to generate binary or 4 color palettes to be used in the leaflet maps.
 }
 \examples{
-library(raster)
 library(leaflet)
 library(rgdal)
 
-sdm <- raster(nrows=10, ncols=10)
-sdm[] <- sample(c(0, 1, NA), size = ncell(sdm), replace = TRUE)
+data(thresholded_sdm)
 
-binpal <- gen_pal(mode = "bin", pal = "YeBl")
+binpal <- gen_pal(mode = "bin", pal = "BlGr")
 
 leaflet()\%>\%
-addProviderTiles("Esri.OceanBasemap") \%>\%
-addRasterImage(sdm, colors = binpal, opacity = 0.9)
+        addProviderTiles("Esri.OceanBasemap") \%>\%
+        addRasterImage(thresholded_sdm[[1]], colors = binpal, opacity = 0.9)
+        
 }

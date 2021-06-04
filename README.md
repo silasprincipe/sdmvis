@@ -28,4 +28,4 @@ SDM results through a *leaflet* map with a single line of code.
 
 ## Next steps
 
-More to come.
+More to come soon, including other visualization tools.

@@ -36,4 +36,4 @@ For now, only the `sdm_leaflet` function is available. It enables to see SDM res
 
 ## Next steps
 
-More to come.
+More to come soon, including other visualization tools.

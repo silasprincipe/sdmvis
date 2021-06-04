@@ -10,18 +10,32 @@ sdm_leaflet(
   pts = NULL,
   pal = NULL,
   layernames = NULL,
-  crs = "standard"
+  crs = "standard",
+  cluster = TRUE
 )
 }
 \arguments{
-\item{F_temp}{The temperature in degrees Fahrenheit}
+\item{sdm}{The SDM/ENM result (or any other spatial analysis result). Should be in the Raster* format. 
+If you want to plot more than 1 layer at the same time (for example, current and future predictions), you should put each RasterLayer in a list (for now, it's not possible to plot everything from a RasterStack or RasterBrick).
+Binary maps should have just two values (0 for absence and 1 for presence).
+Difference maps ("quad" mode, see below) should have 4 values: 0 for unsuitable areas, 1 for areas that were lost, 2 for areas where there was gain of area and 3 for areas where suitability was mantained. Its easy to produce such a map from binary maps. Just multiply the future condition binary map by 2 and sum the current map.}
+
+\item{mode}{A character string indicating the mode of ploting. Should be one of "bin" (used for thresholded binary SDMs), "quad" (used for ploting difference maps between a binary reference map and a future one) or "continuous" (used for plotting continuous scale data).}
+
+\item{pts}{A data frame containing the presence or presence/absence points (optional). The first column should be longitude (x) and the sencond latitude (y). In the case of presence/absence data, an additional collumn should be provided, coded as 0 (absence) and 1 (presence).}
+
+\item{pal}{Character string indicating the name of the palette (see \link[sdmvis]{gen_pal}). If not supplied, the default will be used.}
+
+\item{layernames}{An optional character vector indicating the names of the layers. This will be used in the legend. If not supplied, names will be extracted from the RasterLayer.}
+
+\item{crs}{Enables to change the default projection used in the Leaflet package. For now, not functional.}
+
+\item{cluster}{Should the points be clustered (i.e., aggregated)? Only valid if `pts` is supplied. Default is TRUE.}
 }
 \value{
-The temperature in degrees Celsius
+A Leaflet map.
 }
 \description{
-Convert degrees Fahrenheit temperatures to degrees Celsius
-}
-\examples{
-
+Create a Leaflet map with the results of an SDM analysis.
+This map can be explored interactively in the viewer, so its possible to have a better comprehension of the outcomes of your SDM.
 }
