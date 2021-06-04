@@ -39,3 +39,18 @@ A Leaflet map.
 Create a Leaflet map with the results of an SDM analysis.
 This map can be explored interactively in the viewer, so its possible to have a better comprehension of the outcomes of your SDM.
 }
+\examples{
+library(sdmvis)
+# Load data
+data("thresholded_sdm")
+data("pa_data")
+# Create a list of SDMs and names
+sdm.list <- list(thresholded_sdm[[1]], thresholded_sdm[[2]])
+sdm.names <- c("current", "future")
+# Plot
+sdm_leaflet(sdm = sdm.list,
+            mode = "bin",
+            pts = pa_data,
+           layernames = sdm.names)
+
+}
