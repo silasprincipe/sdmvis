@@ -2,16 +2,30 @@
 % Please edit documentation in R/sdm_leaflet.R
 \name{sdm_leaflet}
 \alias{sdm_leaflet}
+\alias{sdm_leaflet,Raster-method}
+\alias{sdm_leaflet,data.frame-method}
 \title{SDM Leaflet map}
 \usage{
-sdm_leaflet(
+sdm_leaflet(sdm, ...)
+
+\S4method{sdm_leaflet}{Raster}(
   sdm,
   mode = "bin",
   pts = NULL,
   pal = NULL,
   layernames = NULL,
   crs = "standard",
-  cluster = TRUE
+  cluster = FALSE
+)
+
+\S4method{sdm_leaflet}{data.frame}(
+  sdm,
+  mode = "bin",
+  pts = NULL,
+  pal = NULL,
+  layernames = NULL,
+  crs = "standard",
+  cluster = FALSE
 )
 }
 \arguments{
@@ -30,7 +44,7 @@ Difference maps ("quad" mode, see below) should have 4 values: 0 for unsuitable 
 
 \item{crs}{Enables to change the default projection used in the Leaflet package. For now, not functional.}
 
-\item{cluster}{Should the points be clustered (i.e., aggregated)? Only valid if `pts` is supplied. Default is TRUE.}
+\item{cluster}{Should the points be clustered (i.e., aggregated)? Only valid if `pts` is supplied. Default is FALSE.}
 }
 \value{
 A Leaflet map.
@@ -39,6 +53,13 @@ A Leaflet map.
 Create a Leaflet map with the results of an SDM analysis.
 This map can be explored interactively in the viewer, so its possible to have a better comprehension of the outcomes of your SDM.
 }
+\section{Functions}{
+\itemize{
+\item \code{sdm_leaflet,Raster-method}: Method for Raster*
+
+\item \code{sdm_leaflet,data.frame-method}: Method for data frames
+}}
+
 \examples{
 library(sdmvis)
 # Load data

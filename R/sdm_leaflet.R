@@ -11,7 +11,7 @@
 #' @param pal Character string indicating the name of the palette (see \link[sdmvis]{gen_pal}). If not supplied, the default will be used.
 #' @param layernames An optional character vector indicating the names of the layers. This will be used in the legend. If not supplied, names will be extracted from the RasterLayer.
 #' @param crs Enables to change the default projection used in the Leaflet package. For now, not functional.
-#' @param cluster Should the points be clustered (i.e., aggregated)? Only valid if `pts` is supplied. Default is TRUE.
+#' @param cluster Should the points be clustered (i.e., aggregated)? Only valid if `pts` is supplied. Default is FALSE.
 #' 
 #' @return A Leaflet map.
 #' 
@@ -32,48 +32,38 @@
 #' @import raster
 #' @import leaflet
 #' @import leaflet.extras
-#' 
+#' @import leafem
 #' @export
-sdm_leaflet <- function(sdm, mode = "bin", pts = NULL, pal = NULL,
-                        layernames = NULL, crs = "standard", cluster = TRUE){
-        
-        # Verify conditions
-        if (is.list(sdm)) {
-                if (class(sdm[[1]]) != "RasterLayer") {
-                        stop("SDM maps should be in the Raster* format.")
-                }
-        } else{
-                if (class(sdm) != "RasterLayer") {
-                        stop("SDM maps should be in the Raster* format.")
-                } else{
-                        sdm <- list(sdm)
-                }
-        }
+
+setGeneric("sdm_leaflet", function(sdm, ...) {
+        standardGeneric("sdm_leaflet")
+})
+
+# Raster* method
+.raster_method <- function(sdm, mode = "bin", pts = NULL, pal = NULL,
+                  layernames = NULL, crs = "standard", cluster = FALSE){
         
         if (crs == "standard") {
-                crs <- paste0("+proj=merc +lon_0=0 +k=1 +x_0=0 +y_0=0",
-                " +a=6378137 +b=6378137 +towgs84=0,0,0,0,0,0,0",
-                " +units=m +no_defs")
+                crs <- paste0("+proj=merc +a=6378137 +b=6378137 +lat_ts=0.0 +lon_0=0.0",
+                " +x_0=0.0 +y_0=0 +k=1.0 +units=m +nadgrids=@null +wktext  +no_defs")
         }
         
         if (!is.null(layernames)) {
                 lname <- layernames
         } else{
                 
-               lname <- lapply(sdm, names)
-               
-               lname <- unlist(lname)
-               
+               lname <- names(sdm)
         }
         
-        # Reproject
-        sdm <- lapply(sdm, projectRaster,
-                      crs = crs,
-                      method = "ngb")
+        sdm <- projectRaster(sdm,
+                             crs = crs,
+                             method = "ngb")
 
         if (mode != "continuous") {
                 # Convert to factor
-                sdm <- lapply(sdm, as.factor)
+                for (i in 1:nlayers(sdm)) {
+                        sdm[[i]] <- as.factor(sdm[[i]])
+                }
         }
 
         # Plot
@@ -118,14 +108,12 @@ sdm_leaflet <- function(sdm, mode = "bin", pts = NULL, pal = NULL,
 
         basemap <- leaflet()
                 # Base groups
-        basemap <- addProviderTiles(basemap, "Esri.OceanBasemap",
-                                    group = "Esri Ocean")
-        basemap <- addProviderTiles(basemap, "CartoDB.Positron",
-                                    group = "CartoDB")
-        basemap <- addProviderTiles(basemap, "CartoDB.DarkMatter",
+        overmap <- addProviderTiles(basemap, "Esri.OceanBasemap",
+                                    group = "Esri Ocean") %>%
+                addProviderTiles("CartoDB.Positron",
+                                    group = "CartoDB") %>%
+                addProviderTiles("CartoDB.DarkMatter",
                                     group = "CartoDB Dark")
-        
-        overmap <- basemap
         
         if (!is.null(pts)) {
                 if (cluster) {
@@ -134,15 +122,20 @@ sdm_leaflet <- function(sdm, mode = "bin", pts = NULL, pal = NULL,
                         clopt = NULL
                 }
                 
+                popdata <- as.character(rownames(pts))
+                
                 if (length(pts) == 2) {
                         colnames(pts) <- c("longitude", "latitude")
                         
-                        overmap <- addMarkers(overmap,
+                        overmap <- addCircleMarkers(overmap,
                                    data = pts,
                                    clusterOptions = clopt,
                                    group = "Points",
+                                   popup = popdata,
                                    weight = 2,
-                                   radius = 5
+                                   radius = 5,
+                                   opacity = 1,
+                                   fillOpacity = 0.1
                         )
                 } else{
                         pts <- pts[,1:3]
@@ -154,8 +147,11 @@ sdm_leaflet <- function(sdm, mode = "bin", pts = NULL, pal = NULL,
                                               clusterOptions = clopt,
                                               group = "Presence Points",
                                               color = "blue",
+                                              popup = popdata,
                                               weight = 2,
-                                              radius = 5
+                                              radius = 5,
+                                              opacity = 1,
+                                              fillOpacity = 0.1
                         )
                         
                         overmap <- addCircleMarkers(overmap,
@@ -163,14 +159,17 @@ sdm_leaflet <- function(sdm, mode = "bin", pts = NULL, pal = NULL,
                                               clusterOptions = clopt,
                                               group = "Absence Points",
                                               color = "orange",
+                                              popup = popdata,
                                               weight = 2,
-                                              radius = 5
+                                              radius = 5,
+                                              opacity = 1,
+                                              fillOpacity = 0.1
                         )
                 }
         }
 
         if (mode == "bin") {
-                for (i in 1:length(sdm)) {
+                for (i in 1:nlayers(sdm)) {
                         overmap <- addRasterImage(overmap, sdm[[i]],
                                                   colors = binpal,
                                                   opacity = 0.9,
@@ -186,7 +185,7 @@ sdm_leaflet <- function(sdm, mode = "bin", pts = NULL, pal = NULL,
         }
         
         if (mode == "quad") {
-                for (i in 1:length(sdm)) {
+                for (i in 1:nlayers(sdm)) {
                         overmap <- addRasterImage(overmap, sdm[[i]],
                                                   colors = binpal,
                                                   opacity = 0.9,
@@ -204,12 +203,200 @@ sdm_leaflet <- function(sdm, mode = "bin", pts = NULL, pal = NULL,
         }
         
         if (mode == "continuous") {
-                for (i in 1:length(sdm)) {
+                for (i in 1:nlayers(sdm)) {
                         
                         binpal <- colorNumeric(palette = pal,
                                                values(sdm[[i]]),
                                                na.color = "transparent")
                         
+                        overmap <- addRasterImage(overmap, sdm[[i]],
+                                                  colors = binpal,
+                                                  opacity = 0.9,
+                                                  group = lname[i])
+                        overmap <- addLegend(overmap,
+                                             pal = binpal,
+                                             values = values(sdm[[i]]),
+                                             title = lname[i],
+                                             opacity = 1,
+                                             group = lname[i])
+                }
+        }
+        
+        if (!is.null(pts)) {
+                if (length(pts) == 2) {
+                        lname <- c("Points", lname)
+                } else{
+                        lname <- c("Presence Points", "Absence Points", lname)
+                }
+        }
+
+                # Layers control
+        finalmap <- addLayersControl(
+                        overmap,
+                        baseGroups = c("Esri Ocean", "CartoDB", "CartoDB Dark"),
+                        overlayGroups = lname,
+                        options = layersControlOptions(collapsed = T),
+                        position = "bottomright")
+
+        finalmap <- addFullscreenControl(finalmap)
+
+        finalmap %>% leafem::addMouseCoordinates()
+
+        
+}
+
+#' @describeIn sdm_leaflet Method for Raster*
+setMethod("sdm_leaflet", signature = c(sdm = "Raster"), .raster_method)
+
+# Data frame methdd
+.df_method <- function(sdm, mode = "bin", pts = NULL, pal = NULL,
+                           layernames = NULL, crs = "standard", cluster = FALSE){
+        
+        sdm <- rasterFromXYZ(sdm[,1:3])
+        
+        if (crs == "standard") {
+                crs <- paste0("+proj=merc +a=6378137 +b=6378137 +lat_ts=0.0 +lon_0=0.0",
+                              " +x_0=0.0 +y_0=0 +k=1.0 +units=m +nadgrids=@null +wktext  +no_defs")
+        }
+        
+        if (!is.null(layernames)) {
+                lname <- layernames
+        } else{
+                
+                lname <- names(sdm)
+        }
+        
+        sdm <- projectRaster(sdm,
+                             crs = crs,
+                             method = "ngb")
+        
+        if (mode != "continuous") {
+                # Convert to factor
+                for (i in 1:nlayers(sdm)) {
+                        sdm[[i]] <- as.factor(sdm[[i]])
+                }
+        }
+        
+        # Plot
+        if (mode == "bin") {
+                if (is.null(pal)) {
+                        binpal <- sdmvis::gen_pal("bin", "BlGr")
+                }else{
+                        if (length(pal) > 1) {
+                                colors <- pal
+                                
+                                binpal <- leaflet::colorFactor(colors,
+                                                               levels = c(0,1),
+                                                               na.color = NA)
+                        } else{
+                                binpal <- sdmvis::gen_pal("bin", pal = pal)
+                        }
+                        
+                }
+        }
+        
+        if (mode == "quad") {
+                if (is.null(pal)) {
+                        binpal <- sdmvis::gen_pal("quad", "Cool")
+                }else{
+                        if (length(pal) > 1) {
+                                colors <- pal
+                                
+                                binpal <- leaflet::colorFactor(colors,
+                                                               levels = c(0,1),
+                                                               na.color = NA)
+                        } else{
+                                binpal <- sdmvis::gen_pal("quad", pal = pal)
+                        }
+                }
+        }
+        
+        if (mode == "continuous") {
+                if (is.null(pal)) {
+                        pal <- "viridis"
+                }
+        }
+        
+        basemap <- leaflet()
+        # Base groups
+        overmap <- addProviderTiles(basemap, "Esri.OceanBasemap",
+                                    group = "Esri Ocean") %>%
+                addProviderTiles("CartoDB.Positron",
+                                 group = "CartoDB") %>%
+                addProviderTiles("CartoDB.DarkMatter",
+                                 group = "CartoDB Dark")
+        
+        if (!is.null(pts)) {
+                if (cluster) {
+                        clopt <- markerClusterOptions()
+                }else{
+                        clopt = NULL
+                }
+                
+                popdata <- as.character(rownames(pts))
+                
+                if (length(pts) == 2) {
+                        colnames(pts) <- c("longitude", "latitude")
+                        
+                        overmap <- addCircleMarkers(overmap,
+                                                    data = pts,
+                                                    clusterOptions = clopt,
+                                                    group = "Points",
+                                                    popup = popdata,
+                                                    weight = 2,
+                                                    radius = 5,
+                                                    opacity = 1,
+                                                    fillOpacity = 0.1
+                        )
+                } else{
+                        pts <- pts[,1:3]
+                        
+                        colnames(pts) <- c("longitude", "latitude", "dsp")
+                        
+                        overmap <- addCircleMarkers(overmap,
+                                                    data = pts[pts[,3] == 1, 1:2],
+                                                    clusterOptions = clopt,
+                                                    group = "Presence Points",
+                                                    color = "blue",
+                                                    popup = popdata,
+                                                    weight = 2,
+                                                    radius = 5,
+                                                    opacity = 1,
+                                                    fillOpacity = 0.1
+                        )
+                        
+                        overmap <- addCircleMarkers(overmap,
+                                                    data = pts[pts[,3] == 0, 1:2],
+                                                    clusterOptions = clopt,
+                                                    group = "Absence Points",
+                                                    color = "orange",
+                                                    popup = popdata,
+                                                    weight = 2,
+                                                    radius = 5,
+                                                    opacity = 1,
+                                                    fillOpacity = 0.1
+                        )
+                }
+        }
+        
+        if (mode == "bin") {
+                for (i in 1:nlayers(sdm)) {
+                        overmap <- addRasterImage(overmap, sdm[[i]],
+                                                  colors = binpal,
+                                                  opacity = 0.9,
+                                                  group = lname[i])
+                        overmap <- addLegend(overmap,
+                                             colors = binpal(c(0,1)),
+                                             labels = c("Unsuitable", 
+                                                        "Suitable"),
+                                             title = lname[i],
+                                             opacity = 1,
+                                             group = lname[i])
+                }
+        }
+        
+        if (mode == "quad") {
+                for (i in 1:nlayers(sdm)) {
                         overmap <- addRasterImage(overmap, sdm[[i]],
                                                   colors = binpal,
                                                   opacity = 0.9,
@@ -226,25 +413,48 @@ sdm_leaflet <- function(sdm, mode = "bin", pts = NULL, pal = NULL,
                 }
         }
         
+        if (mode == "continuous") {
+                for (i in 1:nlayers(sdm)) {
+                        
+                        binpal <- colorNumeric(palette = pal,
+                                               values(sdm[[i]]),
+                                               na.color = "transparent")
+                        
+                        overmap <- addRasterImage(overmap, sdm[[i]],
+                                                  colors = binpal,
+                                                  opacity = 0.9,
+                                                  group = lname[i])
+                        overmap <- addLegend(overmap,
+                                             pal = binpal,
+                                             values = values(sdm[[i]]),
+                                             title = lname[i],
+                                             opacity = 1,
+                                             group = lname[i])
+                }
+        }
+        
         if (!is.null(pts)) {
                 if (length(pts) == 2) {
                         lname <- c("Points", lname)
                 } else{
-                        lname <- c("Presence", "Absence", lname)
+                        lname <- c("Presence Points", "Absence Points", lname)
                 }
         }
-
-                # Layers control
+        
+        # Layers control
         finalmap <- addLayersControl(
-                        overmap,
-                        baseGroups = c("Esri Ocean", "CartoDB", "CartoDB Dark"),
-                        overlayGroups = lname,
-                        options = layersControlOptions(collapsed = T),
-                        position = "bottomright")
-
+                overmap,
+                baseGroups = c("Esri Ocean", "CartoDB", "CartoDB Dark"),
+                overlayGroups = lname,
+                options = layersControlOptions(collapsed = T),
+                position = "bottomright")
+        
         finalmap <- addFullscreenControl(finalmap)
-
-        finalmap
-
+        
+        finalmap %>% leafem::addMouseCoordinates()
+        
         
 }
+
+#' @describeIn sdm_leaflet Method for data frames
+setMethod("sdm_leaflet", signature = c(sdm = "data.frame"), .df_method)
