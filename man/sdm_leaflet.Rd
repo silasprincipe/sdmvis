@@ -29,8 +29,7 @@ sdm_leaflet(sdm, ...)
 )
 }
 \arguments{
-\item{sdm}{The SDM/ENM result (or any other spatial analysis result). Should be in the Raster* format. 
-If you want to plot more than 1 layer at the same time (for example, current and future predictions), you should put each RasterLayer in a list (for now, it's not possible to plot everything from a RasterStack or RasterBrick).
+\item{sdm}{The SDM/ENM result (or any other spatial analysis result). Can be either a data.frame (for a single SDM result) or in the Raster* format (multiple layers allowed). 
 Binary maps should have just two values (0 for absence and 1 for presence).
 Difference maps ("quad" mode, see below) should have 4 values: 0 for unsuitable areas, 1 for areas that were lost, 2 for areas where there was gain of area and 3 for areas where suitability was mantained. Its easy to produce such a map from binary maps. Just multiply the future condition binary map by 2 and sum the current map.}
 
@@ -65,11 +64,11 @@ library(sdmvis)
 # Load data
 data("thresholded_sdm")
 data("pa_data")
-# Create a list of SDMs and names
-sdm.list <- list(thresholded_sdm[[1]], thresholded_sdm[[2]])
+# Set names
 sdm.names <- c("current", "future")
+
 # Plot
-sdm_leaflet(sdm = sdm.list,
+sdm_leaflet(sdm = thresholded_sdm,
             mode = "bin",
             pts = pa_data,
            layernames = sdm.names)

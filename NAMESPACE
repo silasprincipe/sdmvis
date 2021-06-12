@@ -2,6 +2,7 @@
 
 export(gen_pal)
 export(pts_leaflet)
+export(sdm_highlight)
 export(sdm_leaflet)
 export(sdm_thresh)
 export(var_leaflet)

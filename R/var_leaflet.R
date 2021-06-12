@@ -1,15 +1,15 @@
 #' Environmental variables Leaflet map
 #'
 #' Create a Leaflet map with the environmental variables.
-#' This map can be explored interactively in the viewer.
+#' This map can be explored interactively in the viewer. It's also possible to generate an html file with summary statistics of the environmental layers, together with some plot to help overview the data.
 #' @param var A raster or data.frame with the environmental variables. In the case of a data.frame, the first two collumns should be, respectively, longitude and latitude.
 #' @param pal Character string indicating the name of the palette (see \link[sdmvis]{gen_pal}). If not supplied, the default will be used.
 #' @param layernames An optional character vector indicating the names of the layers. This will be used in the legend. If not supplied, names will be extracted from the RasterLayer.
 #' @param crs Enables to change the default projection used in the Leaflet package. For now, not functional.
 #' @param pts A data frame containing the presence or presence/absence points (optional). The first column should be longitude (x) and the sencond latitude (y). In the case of presence/absence data, an additional collumn should be provided, coded as 0 (absence) and 1 (presence).
 #' @param cluster Should the points be clustered (i.e., aggregated)? Only valid if `pts` is supplied. Default is FALSE.
-#' @param varsummary If set to TRUE, an RMarkdown file will be generated with a series of summary statistics for the variables. Points should also be supplied in that case. This is still quite experimental. Default is FALSE.
-#' @param mess If set to TRUE, an aditional layer is included with the MESS map, using as a reference the environmental data in the presence/absence points (i.e. the data that will be used to train the model). In the case you are plotting future environmental data, you should supply a raster* in the mess.ref argument.
+#' @param varsummary If set to TRUE, an RMarkdown file will be generated with a series of summary statistics for the variables. Points should also be supplied in that case (with a column for presence/absence). This is still quite experimental. Default is FALSE.
+#' @param mess If set to TRUE, an aditional layer is included with the MESS map, using as a reference the environmental data in the presence/absence points (i.e. the data that will be used to train the model). In the case you are plotting future environmental data, you should supply a raster* in the mess.ref argument. Note: setting MESS to TRUE can make the plotting slower.
 #' @param mess.ref If plotting future layers and MESS = TRUE, a Raster* with the same names of the provided layers from where the reference points will be extracted.
 #' 
 #' @return A Leaflet map and optionally an .html file with summary statistics.
@@ -37,7 +37,7 @@ setGeneric("var_leaflet", function(var, ...) {
 # Raster* method
 .vr_method <- function(var, pts = NULL, pal = NULL,
                   layernames = NULL, crs = "standard", cluster = FALSE,
-                  varsummary = FALSE, mess = TRUE, mess.ref = NULL){
+                  varsummary = FALSE, mess = FALSE, mess.ref = NULL){
         
         if (crs == "standard") {
                 crs <- paste0("+proj=merc +a=6378137 +b=6378137 +lat_ts=0.0 +lon_0=0.0",
@@ -176,7 +176,11 @@ setGeneric("var_leaflet", function(var, ...) {
                 
                 m <- rasterFromXYZ(m[,1:3])
                 
-                crs(m) <- crs
+                crs(m) <- crs(var.o)
+                
+                m <- projectRaster(m,
+                                   crs = crs,
+                                   method = "bilinear")
                 
                 binpal <- leaflet::colorNumeric(palette = "Spectral",
                                        values(m),
@@ -212,11 +216,36 @@ setGeneric("var_leaflet", function(var, ...) {
                         overlayGroups = lname,
                         options = layersControlOptions(collapsed = T),
                         position = "bottomright")
+        
+        if (!is.null(pts)) {
+                if (length(pts) == 2) {
+                        finalmap <- finalmap %>%
+                                hideGroup(lname[lname != lname[2]]) %>% 
+                                addFullscreenControl()
+                } else{
+                        finalmap <- finalmap %>%
+                                hideGroup(lname[lname != lname[3]]) %>% 
+                                addFullscreenControl()
+                }
+        } else{
+                if (length(lname) > 1) {
+                        finalmap <- finalmap %>%
+                                hideGroup(lname[lname != lname[1]]) %>% 
+                                addFullscreenControl()
+                }else{
+                        finalmap <- finalmap %>%
+                                addFullscreenControl()
+                }
+        }
 
-        finalmap <- addFullscreenControl(finalmap)
+        
 
 
         if (isTRUE(varsummary)) {
+                
+                if (length(pts) < 3) {
+                        stop("A data.frame of length 3 with presence and absence columns should be supplied for the summary.")
+                }
                 
                 sdm_vis_rdm_data <- list(var.o, pts)
                 
@@ -291,7 +320,7 @@ setGeneric("var_leaflet", function(var, ...) {
 # Data frame methdd
 .var_df_method <- function(var, pts = NULL, pal = NULL,
                            layernames = NULL, crs = "standard", cluster = FALSE,
-                           varsummary = FALSE, mess = TRUE, mess.ref = NULL){
+                           varsummary = FALSE, mess = FALSE, mess.ref = NULL){
         
         if (length(var) == 3) {
                 var <- rasterFromXYZ(var[,1:3])
@@ -458,7 +487,11 @@ setGeneric("var_leaflet", function(var, ...) {
                 
                 m <- rasterFromXYZ(m[,1:3])
                 
-                crs(m) <- crs
+                crs(m) <- crs(var.o)
+                
+                m <- projectRaster(m,
+                                     crs = crs,
+                                     method = "bilinear")
                 
                 binpal <- leaflet::colorNumeric(palette = "Spectral",
                                                 values(m),
@@ -495,9 +528,32 @@ setGeneric("var_leaflet", function(var, ...) {
                 options = layersControlOptions(collapsed = T),
                 position = "bottomright")
         
-        finalmap <- addFullscreenControl(finalmap)
+        if (!is.null(pts)) {
+                if (length(pts) == 2) {
+                        finalmap <- finalmap %>%
+                                hideGroup(lname[lname != lname[2]]) %>% 
+                                addFullscreenControl()
+                } else{
+                        finalmap <- finalmap %>%
+                                hideGroup(lname[lname != lname[3]]) %>% 
+                                addFullscreenControl()
+                }
+        } else{
+                if (length(lname) > 1) {
+                        finalmap <- finalmap %>%
+                                hideGroup(lname[lname != lname[1]]) %>% 
+                                addFullscreenControl()
+                }else{
+                        finalmap <- finalmap %>%
+                                addFullscreenControl()
+                }
+        }
         
         if (isTRUE(varsummary)) {
+                
+                if (length(pts) < 3) {
+                        stop("A data.frame of length 3 with presence and absence columns should be supplied for the summary.")
+                }
                 
                 sdm_vis_rdm_data <- list(var.o, pts)
                 

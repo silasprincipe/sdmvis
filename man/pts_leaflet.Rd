@@ -19,8 +19,7 @@ pts_leaflet(pts, cols = NULL, cluster = FALSE, popinfo = NULL)
 A Leaflet map with the points.
 }
 \description{
-Create a Leaflet map with the presence or presence/absence locations.
-This map can be explored interactively in the viewer, so its possible to have a better comprehension of the outcomes of your SDM.
+Create a Leaflet map with the presence or presence/absence locations. Good for spotting problematic points.
 }
 \examples{
 library(sdmvis)

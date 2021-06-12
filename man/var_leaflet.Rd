@@ -16,7 +16,7 @@ var_leaflet(var, ...)
   crs = "standard",
   cluster = FALSE,
   varsummary = FALSE,
-  mess = TRUE,
+  mess = FALSE,
   mess.ref = NULL
 )
 
@@ -28,7 +28,7 @@ var_leaflet(var, ...)
   crs = "standard",
   cluster = FALSE,
   varsummary = FALSE,
-  mess = TRUE,
+  mess = FALSE,
   mess.ref = NULL
 )
 }
@@ -45,9 +45,9 @@ var_leaflet(var, ...)
 
 \item{cluster}{Should the points be clustered (i.e., aggregated)? Only valid if `pts` is supplied. Default is FALSE.}
 
-\item{varsummary}{If set to TRUE, an RMarkdown file will be generated with a series of summary statistics for the variables. Points should also be supplied in that case. This is still quite experimental. Default is FALSE.}
+\item{varsummary}{If set to TRUE, an RMarkdown file will be generated with a series of summary statistics for the variables. Points should also be supplied in that case (with a column for presence/absence). This is still quite experimental. Default is FALSE.}
 
-\item{mess}{If set to TRUE, an aditional layer is included with the MESS map, using as a reference the environmental data in the presence/absence points (i.e. the data that will be used to train the model). In the case you are plotting future environmental data, you should supply a raster* in the mess.ref argument.}
+\item{mess}{If set to TRUE, an aditional layer is included with the MESS map, using as a reference the environmental data in the presence/absence points (i.e. the data that will be used to train the model). In the case you are plotting future environmental data, you should supply a raster* in the mess.ref argument. Note: setting MESS to TRUE can make the plotting slower.}
 
 \item{mess.ref}{If plotting future layers and MESS = TRUE, a Raster* with the same names of the provided layers from where the reference points will be extracted.}
 }
@@ -56,7 +56,7 @@ A Leaflet map and optionally an .html file with summary statistics.
 }
 \description{
 Create a Leaflet map with the environmental variables.
-This map can be explored interactively in the viewer.
+This map can be explored interactively in the viewer. It's also possible to generate an html file with summary statistics of the environmental layers, together with some plot to help overview the data.
 }
 \section{Functions}{
 \itemize{
@@ -67,16 +67,10 @@ This map can be explored interactively in the viewer.
 
 \examples{
 library(sdmvis)
-# Load data
-data("thresholded_sdm")
 data("pa_data")
-# Create a list of SDMs and names
-sdm.list <- list(thresholded_sdm[[1]], thresholded_sdm[[2]])
-sdm.names <- c("current", "future")
-# Plot
-sdm_leaflet(sdm = sdm.list,
-            mode = "bin",
-            pts = pa_data,
-           layernames = sdm.names)
+data("env_data")
+
+var_leaflet(var = env_data, pts = pa_data, mess = FALSE)
+
 
 }

@@ -1,16 +1,15 @@
-#' SDM Leaflet map with different thresholds
+#' SDM Leaflet map highlighting extreme values
 #'
-#' Create a Leaflet map with the results of an SDM and draw how different thresholds will result.
-#' This map can be explored interactively in the viewer, so its possible to have a better comprehension of the outcomes of your SDM.
-#' @param sdm The SDM/ENM result. Should be in the Raster* format.
-#' @param thresh A vector containing the thresholds to be applied (numeric values).
-#' @param tname An optional character vector containing the names of the thresholds to be used in the legend. If not supplied, numerals will be used instead.
+#' Create a Leaflet map highlighting extreme values in an SDM output. This can either be minimum, maximum or both values set as a quantile.
+#' 
+#' @param sdm The SDM/ENM result. Should be a data.frame (XYZ columns) or in the Raster* format.
+#' @param quantile A single numeric value between 0 and 1 indicating which quantile to use (will be the same for both sides, if `both.sides` set to TRUE). For example, if you want the 25% higher values, you can set the quantile to 0.75. If you want both higher and lower 25%, just put 0.75, and set `both.sides = TRUE`. Note: setting quantile 1 makes no sense, as it will be 100%. The same for setting it 0.5 and both.sides = TRUE. 
+#' @param both.sides If set to TRUE, than both the higher and lower values will be ploted.
 #' @param pts A data frame containing the presence or presence/absence points (optional). The first column should be longitude (x) and the sencond latitude (y). In the case of presence/absence data, an additional collumn should be provided, coded as 0 (absence) and 1 (presence).
 #' @param pal Character string indicating the name of the continuous mode palette (see \link[sdmvis]{gen_pal}). If not supplied, the default will be used.
 #' @param crs Enables to change the default projection used in the Leaflet package. For now, not functional.
 #' @param cluster Should the points be clustered (i.e., aggregated)? Only valid if `pts` is supplied. Default is FALSE.
 #' @param simplify Should the polygons be simplified? If TRUE, the output became lighter.
-#' @param thresh.color Vector of color(s) to be used for the threshold(s) polygon(s)
 #' 
 #' @return A Leaflet map.
 #' 
@@ -21,10 +20,10 @@
 #' data("pa_data")
 #' 
 #' # Plot
-#' sdm_thresh(sdm = original_sdm[[1]],
-#'            thresh = -2,
-#'            tname = "TSS",
-#'            pts = pa_data)
+#' .hraster_method(sdm = original_sdm[[1]],
+#'                 quantile = .75,
+#'                 pts = pa_data,
+#'                 both.sides = T)
 #' 
 #' @import raster
 #' @import leaflet
@@ -32,14 +31,15 @@
 #' @import leafem
 #' @export
 
-setGeneric("sdm_thresh", function(sdm, ...) {
-        standardGeneric("sdm_thresh")
+setGeneric("sdm_highlight", function(sdm, ...) {
+        standardGeneric("sdm_highlight")
 })
 
 # Raster* method
-.traster_method <- function(sdm, thresh, tname = NULL, pts = NULL, pal = NULL,
-                           crs = "standard", cluster = FALSE,
-                           simplify = TRUE, thresh.color = NULL){
+.hraster_method <- function(sdm, quantile, both.sides = FALSE,
+                            pts = NULL, pal = NULL,
+                            crs = "standard", cluster = FALSE,
+                            simplify = TRUE){
         
         if (crs == "standard") {
                 crs <- paste0("+proj=merc +a=6378137 +b=6378137 +lat_ts=0.0 +lon_0=0.0",
@@ -136,32 +136,45 @@ setGeneric("sdm_thresh", function(sdm, ...) {
                              opacity = 1,
                              group = lname)
         
-        if (is.null(tname)) {
-                tname <- paste("Threshold", 1:length(thresh))
+        if (isTRUE(both.sides)) {
+                if (quantile < 0.5) {
+                        thresh <- c(quantile, (1-quantile))
+                }else{
+                        thresh <- c((1-quantile), quantile)
+                }
+                
+                tname <- c("Lower", "Higher")
+        }else{
+                thresh <- quantile
+                
+                tname <- "Higher quantile"
         }
         
-        if (is.null(thresh.color)) {
-                cols <- c("#00CD66", "#00C5CD", "#FFA500", "#CD00CD")
-                cols <- rep(cols, times = length(thresh))
-        }
+        cols <- c("red", "blue")
         
-        for (i in 1:length(thresh)) {
-                if (thresh[i] <= 0) {
+        if (!isTRUE(both.sides)) {
+                
+                v <- na.omit(values(sdm.orig))
+                
+                q <- quantile(v, thresh)
+                
+                if (q <= 0) {
                         sdm.temp <- calc(sdm.orig,
                                          function(x){
-                                                 x[x >= thresh[i]] <- 1
-                                                 x[x < thresh[i]] <- NA
+                                                 x[x >= q] <- 1
+                                                 x[x < q] <- NA
                                                  x
                                          })
                 }
-                if (thresh[i] > 0) {
+                if (q > 0) {
                         sdm.temp <- calc(sdm.orig,
                                          function(x){
-                                                 x[x < thresh[i]] <- NA
-                                                 x[x >= thresh[i]] <- 1
+                                                 x[x < q] <- NA
+                                                 x[x >= q] <- 1
                                                  x
                                          })
                 }
+                
                 
                 sdm.temp <- rasterToPolygons(sdm.temp, dissolve = T)
                 
@@ -172,8 +185,48 @@ setGeneric("sdm_thresh", function(sdm, ...) {
                 
                 overmap <- addPolygons(overmap, data = sdm.temp,
                                        opacity = 0.5,
-                                       color = cols[i],
-                                       fillOpacity = 0.2, group = tname[i])
+                                       color = "red",
+                                       fillOpacity = 0.2, group = tname)
+        }
+        
+        if (isTRUE(both.sides)) {
+                
+                for (i in 1:2) {
+                        v <- na.omit(values(sdm.orig))
+                        
+                        q <- quantile(v, thresh[i])
+                        
+                        if (thresh[i] < 0.5) {
+                                sdm.temp <- calc(sdm.orig,
+                                                 function(x){
+                                                         x[x > q] <- NA
+                                                         x[x <= q] <- 1
+                                                         x
+                                                 })
+                        }
+                        
+                        if (thresh[i] > 0.5) {
+                                sdm.temp <- calc(sdm.orig,
+                                                 function(x){
+                                                         x[x < q] <- NA
+                                                         x[x >= q] <- 1
+                                                         x
+                                                 })
+                        }
+                        
+                        sdm.temp <- rasterToPolygons(sdm.temp, dissolve = T)
+                        
+                        if (isTRUE(simplify)) {
+                                sdm.temp <- rmapshaper::ms_simplify(sdm.temp,
+                                                                    keep = 0.1)
+                        }
+                        
+                        overmap <- addPolygons(overmap, data = sdm.temp,
+                                               opacity = 0.5,
+                                               color = cols[i],
+                                               fillOpacity = 0.2,
+                                               group = tname[i])
+                }
         }
         
         if (!is.null(pts)) {
@@ -220,13 +273,14 @@ setGeneric("sdm_thresh", function(sdm, ...) {
         
 }
 
-#' @describeIn sdm_thresh Method for Raster*
-setMethod("sdm_thresh", signature = c(sdm = "Raster"), .traster_method)
+#' @describeIn sdm_highlight Method for Raster*
+setMethod("sdm_highlight", signature = c(sdm = "Raster"), .hraster_method)
 
 # Data frame methdd
-.tdf_method <- function(sdm, thresh, tname = NULL, pts = NULL, pal = NULL,
+.hdf_method <- function(sdm, quantile, both.sides = FALSE,
+                        pts = NULL, pal = NULL,
                         crs = "standard", cluster = FALSE,
-                        simplify = TRUE, thresh.color = NULL){
+                        simplify = TRUE){
         
         sdm <- rasterFromXYZ(sdm[,1:3])
         
@@ -325,32 +379,45 @@ setMethod("sdm_thresh", signature = c(sdm = "Raster"), .traster_method)
                              opacity = 1,
                              group = lname)
         
-        if (is.null(tname)) {
-                tname <- paste("Threshold", 1:length(thresh))
+        if (isTRUE(both.sides)) {
+                if (quantile < 0.5) {
+                        thresh <- c(quantile, (1-quantile))
+                }else{
+                        thresh <- c((1-quantile), quantile)
+                }
+                
+                tname <- c("Lower", "Higher")
+        }else{
+                thresh <- quantile
+                
+                tname <- "Higher quantile"
         }
         
-        if (is.null(thresh.color)) {
-                cols <- c("#00CD66", "#00C5CD", "#FFA500", "#CD00CD")
-                cols <- rep(cols, times = length(thresh))
-        }
+        cols <- c("red", "blue")
         
-        for (i in 1:length(thresh)) {
-                if (thresh[i] <= 0) {
+        if (!isTRUE(both.sides)) {
+                
+                v <- na.omit(values(sdm.orig))
+                
+                q <- quantile(v, thresh)
+                
+                if (q <= 0) {
                         sdm.temp <- calc(sdm.orig,
                                          function(x){
-                                                 x[x >= thresh[i]] <- 1
-                                                 x[x < thresh[i]] <- NA
+                                                 x[x >= q] <- 1
+                                                 x[x < q] <- NA
                                                  x
                                          })
                 }
-                if (thresh[i] > 0) {
+                if (q > 0) {
                         sdm.temp <- calc(sdm.orig,
                                          function(x){
-                                                 x[x < thresh[i]] <- NA
-                                                 x[x >= thresh[i]] <- 1
+                                                 x[x < q] <- NA
+                                                 x[x >= q] <- 1
                                                  x
                                          })
                 }
+                
                 
                 sdm.temp <- rasterToPolygons(sdm.temp, dissolve = T)
                 
@@ -361,8 +428,48 @@ setMethod("sdm_thresh", signature = c(sdm = "Raster"), .traster_method)
                 
                 overmap <- addPolygons(overmap, data = sdm.temp,
                                        opacity = 0.5,
-                                       color = cols[i],
-                                       fillOpacity = 0.2, group = tname[i])
+                                       color = "red",
+                                       fillOpacity = 0.2, group = tname)
+        }
+        
+        if (isTRUE(both.sides)) {
+                
+                for (i in 1:2) {
+                        v <- na.omit(values(sdm.orig))
+                        
+                        q <- quantile(v, thresh[i])
+                        
+                        if (thresh[i] < 0.5) {
+                                sdm.temp <- calc(sdm.orig,
+                                                 function(x){
+                                                         x[x > q] <- NA
+                                                         x[x <= q] <- 1
+                                                         x
+                                                 })
+                        }
+                        
+                        if (thresh[i] > 0.5) {
+                                sdm.temp <- calc(sdm.orig,
+                                                 function(x){
+                                                         x[x < q] <- NA
+                                                         x[x >= q] <- 1
+                                                         x
+                                                 })
+                        }
+                        
+                        sdm.temp <- rasterToPolygons(sdm.temp, dissolve = T)
+                        
+                        if (isTRUE(simplify)) {
+                                sdm.temp <- rmapshaper::ms_simplify(sdm.temp,
+                                                                    keep = 0.1)
+                        }
+                        
+                        overmap <- addPolygons(overmap, data = sdm.temp,
+                                               opacity = 0.5,
+                                               color = cols[i],
+                                               fillOpacity = 0.2,
+                                               group = tname[i])
+                }
         }
         
         if (!is.null(pts)) {
@@ -404,10 +511,9 @@ setMethod("sdm_thresh", signature = c(sdm = "Raster"), .traster_method)
                 
         }
         
-        finalmap %>% leafem::addMouseCoordinates()
-        
+        finalmap %>% leafem::addMouseCoordinates()       
         
 }
 
-#' @describeIn sdm_thresh Method for data frames
-setMethod("sdm_thresh", signature = c(sdm = "data.frame"), .tdf_method)
+#' @describeIn sdm_highlight Method for data frames
+setMethod("sdm_highlight", signature = c(sdm = "data.frame"), .hdf_method)

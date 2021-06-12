@@ -2,45 +2,38 @@
 % Please edit documentation in R/var_report.R
 \name{var_report}
 \alias{var_report}
-\title{Generate}
+\title{Summary stats of environmental variables.}
 \usage{
 var_report(var, pts, mode, type = "rmd")
 }
 \arguments{
-\item{var}{A raster or data.frame with the environmental variables. In the case of a data.frame, the first two collumns should be, respectively, longitude and latitude.}
+\item{var}{A raster with the environmental variables.}
 
-\item{pts}{A data frame containing the presence or presence/absence points (optional). The first column should be longitude (x) and the sencond latitude (y). In the case of presence/absence data, an additional collumn should be provided, coded as 0 (absence) and 1 (presence).}
+\item{pts}{A data frame containing the presence/absence points. The first column should be longitude (x) and the sencond latitude (y). An additional collumn should be provided, coded as 0 (absence) and 1 (presence).}
 
 \item{mode}{Which type of result return:
 \itemize{
  \item{"full.summary"}{A summary of each variable.}
  \item{"pts.summary"}{A summary for each variable, extracted from the points.}
- \item{"d.plots"}{Stuff}
- \item{"pt.plots"}{Stuff}
- \item{"de.plots"}{Stuff}
+ \item{"d.plots"}{Density plots for full data, presence data and absence data.}
+ \item{"pt.plots"}{Points plot with median and bars of mean+-SD.}
+ \item{"de.plots"}{Density plots of the full data only, but with points of presence-absence.}
 }}
 
-\item{type}{}
+\item{type}{Which type of output for the summaries (either "rmd" for markdown tables or any other value for a list with the summaries as a data.frame).}
 }
 \value{
-A Leaflet map and optionally an .html file with summary statistics.
+Summary statistics or plots.
 }
 \description{
-Create a Leaflet map with the environmental variables.
-This map can be explored interactively in the viewer.
+Gets summary statistics of environmental variables (full and extracted by points) and also plot some graphics that helps to understand the data.
+It's mainly used by the \link[sdmvis]{var_leaflet} function if the option to get an html summary is set to TRUE. However, it's also possible to use it individually, and also to produce interactive documents in R Markdown.
 }
 \examples{
 library(sdmvis)
-# Load data
-data("thresholded_sdm")
 data("pa_data")
-# Create a list of SDMs and names
-sdm.list <- list(thresholded_sdm[[1]], thresholded_sdm[[2]])
-sdm.names <- c("current", "future")
-# Plot
-sdm_leaflet(sdm = sdm.list,
-            mode = "bin",
-            pts = pa_data,
-           layernames = sdm.names)
+data("env_data")
+
+var_report(env_data, pa_data, mode = "d.plots")
 
 }

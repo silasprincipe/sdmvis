@@ -2,9 +2,13 @@
 % Please edit documentation in R/sdm_thresh.R
 \name{sdm_thresh}
 \alias{sdm_thresh}
+\alias{sdm_thresh,Raster-method}
+\alias{sdm_thresh,data.frame-method}
 \title{SDM Leaflet map with different thresholds}
 \usage{
-sdm_thresh(
+sdm_thresh(sdm, ...)
+
+\S4method{sdm_thresh}{Raster}(
   sdm,
   thresh,
   tname = NULL,
@@ -12,7 +16,18 @@ sdm_thresh(
   pal = NULL,
   crs = "standard",
   cluster = FALSE,
-  layernames = NULL,
+  simplify = TRUE,
+  thresh.color = NULL
+)
+
+\S4method{sdm_thresh}{data.frame}(
+  sdm,
+  thresh,
+  tname = NULL,
+  pts = NULL,
+  pal = NULL,
+  crs = "standard",
+  cluster = FALSE,
   simplify = TRUE,
   thresh.color = NULL
 )
@@ -20,7 +35,7 @@ sdm_thresh(
 \arguments{
 \item{sdm}{The SDM/ENM result. Should be in the Raster* format.}
 
-\item{thresh}{A vector containing the thresholds to be applied (numeric values). If you want to try p10 and MTP, there is a function included in the package (\link[sdmvis]{sdm_get_thresh})}
+\item{thresh}{A vector containing the thresholds to be applied (numeric values).}
 
 \item{tname}{An optional character vector containing the names of the thresholds to be used in the legend. If not supplied, numerals will be used instead.}
 
@@ -33,6 +48,8 @@ sdm_thresh(
 \item{cluster}{Should the points be clustered (i.e., aggregated)? Only valid if `pts` is supplied. Default is FALSE.}
 
 \item{simplify}{Should the polygons be simplified? If TRUE, the output became lighter.}
+
+\item{thresh.color}{Vector of color(s) to be used for the threshold(s) polygon(s)}
 }
 \value{
 A Leaflet map.
@@ -41,18 +58,23 @@ A Leaflet map.
 Create a Leaflet map with the results of an SDM and draw how different thresholds will result.
 This map can be explored interactively in the viewer, so its possible to have a better comprehension of the outcomes of your SDM.
 }
+\section{Functions}{
+\itemize{
+\item \code{sdm_thresh,Raster-method}: Method for Raster*
+
+\item \code{sdm_thresh,data.frame-method}: Method for data frames
+}}
+
 \examples{
 library(sdmvis)
 # Load data
-data("thresholded_sdm")
+data("original_sdm")
 data("pa_data")
-# Create a list of SDMs and names
-sdm.list <- list(thresholded_sdm[[1]], thresholded_sdm[[2]])
-sdm.names <- c("current", "future")
+
 # Plot
-sdm_leaflet(sdm = sdm.list,
-            mode = "bin",
-            pts = pa_data,
-           layernames = sdm.names)
+sdm_thresh(sdm = original_sdm[[1]],
+           thresh = -2,
+           tname = "TSS",
+           pts = pa_data)
 
 }

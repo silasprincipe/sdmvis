@@ -1,7 +1,7 @@
 #' Occurrence points Leaflet map
 #'
-#' Create a Leaflet map with the presence or presence/absence locations.
-#' This map can be explored interactively in the viewer, so its possible to have a better comprehension of the outcomes of your SDM.
+#' Create a Leaflet map with the presence or presence/absence locations. Good for spotting problematic points.
+#' 
 #' @param pts A data frame containing the presence or presence/absence points. The first column should be longitude (x) and the sencond latitude (y). In the case of presence/absence data, an additional collumn should be provided, coded as 0 (absence) and 1 (presence).
 #' @param cols Character string indicating the color for the points or a character vector of length 2 indicating the colors for the presence and absence, respectively. If not supplied, the default will be used.
 #' @param cluster Should the points be clustered (i.e., aggregated)? Only valid if `pts` is supplied. Default is FALSE.
