@@ -3,7 +3,7 @@ pkgdown: 1.6.1
 pkgdown_sha: ~
 articles:
   simple_use: simple_use.html
-last_built: 2021-06-14T22:23Z
+last_built: 2021-06-14T22:47Z
 urls:
   reference: https://silasprincipe.github.io/sdmvis/reference
   article: https://silasprincipe.github.io/sdmvis/articles
