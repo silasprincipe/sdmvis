@@ -44,7 +44,7 @@ sdm_leaflet(your_sdm_raster,
 ```
 
 [See the package vignette for a complete use case within the SDM
-routine.](https://silasprincipe.github.io/sdmvis/articles/linking.html)
+routine.](https://silasprincipe.github.io/sdmvis/articles/simple_use.html)
 
 ## Next steps
 
