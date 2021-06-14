@@ -6,7 +6,17 @@
 \alias{sdm_thresh,data.frame-method}
 \title{SDM Leaflet map with different thresholds}
 \usage{
-sdm_thresh(sdm, ...)
+sdm_thresh(
+  sdm,
+  thresh,
+  tname = NULL,
+  pts = NULL,
+  pal = NULL,
+  crs = "standard",
+  cluster = FALSE,
+  simplify = TRUE,
+  thresh.color = NULL
+)
 
 \S4method{sdm_thresh}{Raster}(
   sdm,

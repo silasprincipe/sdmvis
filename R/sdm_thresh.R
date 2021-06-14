@@ -32,7 +32,10 @@
 #' @import leafem
 #' @export
 
-setGeneric("sdm_thresh", function(sdm, ...) {
+setGeneric("sdm_thresh", function(sdm, thresh, tname = NULL, pts = NULL,
+                                  pal = NULL,
+                                  crs = "standard", cluster = FALSE,
+                                  simplify = TRUE, thresh.color = NULL) {
         standardGeneric("sdm_thresh")
 })
 

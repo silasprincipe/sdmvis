@@ -6,7 +6,16 @@
 \alias{sdm_highlight,data.frame-method}
 \title{SDM Leaflet map highlighting extreme values}
 \usage{
-sdm_highlight(sdm, ...)
+sdm_highlight(
+  sdm,
+  quantile,
+  both.sides = FALSE,
+  pts = NULL,
+  pal = NULL,
+  crs = "standard",
+  cluster = FALSE,
+  simplify = TRUE
+)
 
 \S4method{sdm_highlight}{Raster}(
   sdm,
@@ -33,7 +42,8 @@ sdm_highlight(sdm, ...)
 \arguments{
 \item{sdm}{The SDM/ENM result. Should be a data.frame (XYZ columns) or in the Raster* format.}
 
-\item{quantile}{A single numeric value between 0 and 1 indicating which quantile to use (will be the same for both sides, if `both.sides` set to TRUE). For example, if you want the 25% higher values, you can set the quantile to 0.75. If you want both higher and lower 25%, just put 0.75, and set `both.sides = TRUE`. Note: setting quantile 1 makes no sense, as it will be 100%. The same for setting it 0.5 and both.sides = TRUE.}
+\item{quantile}{A single numeric value between 0 and 1 indicating which quantile to use (will be the same for both sides, if `both.sides` set to `TRUE`). For example, if you want the 25 percent higher values, you can set the quantile to 0.75.
+If you want both higher and lower 25 percent, just put 0.75, and set `both.sides = TRUE`. Note: setting quantile 1 makes no sense, as it will be 100 percent. The same for setting it 0.5 and `both.sides = TRUE`.}
 
 \item{both.sides}{If set to TRUE, than both the higher and lower values will be ploted.}
 
@@ -67,9 +77,9 @@ data("original_sdm")
 data("pa_data")
 
 # Plot
-.hraster_method(sdm = original_sdm[[1]],
+sdm_highlight(sdm = original_sdm[[1]],
                 quantile = .75,
                 pts = pa_data,
-                both.sides = T)
+                both.sides = TRUE)
 
 }

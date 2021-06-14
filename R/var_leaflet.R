@@ -30,7 +30,11 @@
 #' 
 #' @export
 
-setGeneric("var_leaflet", function(var, ...) {
+setGeneric("var_leaflet", function(var, pts = NULL, pal = NULL,
+                                   layernames = NULL, crs = "standard",
+                                   cluster = FALSE,
+                                   varsummary = FALSE, mess = FALSE,
+                                   mess.ref = NULL) {
         standardGeneric("var_leaflet")
 })
 
@@ -162,7 +166,9 @@ setGeneric("var_leaflet", function(var, ...) {
                 
                 var.m <- data.frame(rasterToPoints(var.o))
                 
-                env.pts <- extract(env, pts[,1:2])
+                var.m <- na.omit(var.m)
+                
+                env.pts <- raster::extract(env, pts[,1:2])
                 
                 env.pts <- data.frame(cbind(pts[,1:2], env.pts))
                 
@@ -473,11 +479,13 @@ setGeneric("var_leaflet", function(var, ...) {
                 
                 var.m <- data.frame(rasterToPoints(var.o))
                 
+                var.m <- na.omit(var.m)
+                
                 env.pts <- raster::extract(env, pts[,1:2])
                 
-                env.pts <- na.omit(env.pts)
-                
                 env.pts <- data.frame(cbind(pts[,1:2], env.pts))
+                
+                env.pts <- na.omit(env.pts)
                 
                 colnames(env.pts) <- colnames(var.m)
                 

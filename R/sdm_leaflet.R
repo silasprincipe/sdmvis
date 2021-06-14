@@ -34,7 +34,9 @@
 #' @import leafem
 #' @export
 
-setGeneric("sdm_leaflet", function(sdm, ...) {
+setGeneric("sdm_leaflet", function(sdm, mode = "bin", pts = NULL, pal = NULL,
+                                   layernames = NULL, crs = "standard",
+                                   cluster = FALSE) {
         standardGeneric("sdm_leaflet")
 })
 
@@ -60,9 +62,14 @@ setGeneric("sdm_leaflet", function(sdm, ...) {
 
         if (mode != "continuous") {
                 # Convert to factor
-                for (i in 1:nlayers(sdm)) {
-                        sdm[[i]] <- as.factor(sdm[[i]])
+                if (nlayers(sdm) > 1) {
+                        for (i in 1:nlayers(sdm)) {
+                                sdm[[i]] <- as.factor(sdm[[i]])
+                        }
+                }else{
+                        sdm <- as.factor(sdm)
                 }
+
         }
 
         # Plot
@@ -85,7 +92,7 @@ setGeneric("sdm_leaflet", function(sdm, ...) {
         
         if (mode == "quad") {
                 if (is.null(pal)) {
-                        binpal <- sdmvis::gen_pal("quad", "Cool")
+                        binpal <- sdmvis::gen_pal("quad", "Cont")
                 }else{
                         if (length(pal) > 1) {
                                 colors <- pal
@@ -290,9 +297,14 @@ setMethod("sdm_leaflet", signature = c(sdm = "Raster"), .raster_method)
         
         if (mode != "continuous") {
                 # Convert to factor
-                for (i in 1:nlayers(sdm)) {
-                        sdm[[i]] <- as.factor(sdm[[i]])
+                if (nlayers(sdm) > 1) {
+                        for (i in 1:nlayers(sdm)) {
+                                sdm[[i]] <- as.factor(sdm[[i]])
+                        }
+                }else{
+                        sdm <- as.factor(sdm)
                 }
+                
         }
         
         # Plot

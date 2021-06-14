@@ -6,7 +6,15 @@
 \alias{sdm_leaflet,data.frame-method}
 \title{SDM Leaflet map}
 \usage{
-sdm_leaflet(sdm, ...)
+sdm_leaflet(
+  sdm,
+  mode = "bin",
+  pts = NULL,
+  pal = NULL,
+  layernames = NULL,
+  crs = "standard",
+  cluster = FALSE
+)
 
 \S4method{sdm_leaflet}{Raster}(
   sdm,

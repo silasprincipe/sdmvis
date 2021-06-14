@@ -40,7 +40,7 @@ pts_leaflet <- function(pts, cols = NULL,
                 clopt = NULL
         }
         
-        if (!is.null(popinfo)) {
+        if (is.null(popinfo)) {
                 popdata <- as.character(rownames(pts))
         } else{
                 if (length(popinfo) == 1) {

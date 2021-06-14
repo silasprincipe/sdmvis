@@ -1,0 +1,8 @@
+template:
+  params:
+    bootswatch: flatly
+    
+navbar:
+  right:
+    - href: https://github.com/silasprincipe/sdmvis
+      icon: fab fa-github fa-lg 

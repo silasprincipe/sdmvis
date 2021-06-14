@@ -6,7 +6,17 @@
 \alias{var_leaflet,Raster-method}
 \title{Environmental variables Leaflet map}
 \usage{
-var_leaflet(var, ...)
+var_leaflet(
+  var,
+  pts = NULL,
+  pal = NULL,
+  layernames = NULL,
+  crs = "standard",
+  cluster = FALSE,
+  varsummary = FALSE,
+  mess = FALSE,
+  mess.ref = NULL
+)
 
 \S4method{var_leaflet}{data.frame}(
   var,
